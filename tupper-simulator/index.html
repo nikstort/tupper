@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador Fórmula de Tupper</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f12;
+      --surface: #18181c;
+      --border: #2a2a30;
+      --text: #e4e4e7;
+      --muted: #71717a;
+      --accent: #a78bfa;
+      --accent-dim: #7c3aed;
+      --pixel-on: #18181c;
+      --pixel-off: #fafafa;
+      --hover: #27272a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-weight: 600;
+      font-size: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 0.25rem;
+    }
+
+    .app-layout {
+      display: grid;
+      grid-template-columns: minmax(260px, 280px) 1fr minmax(280px, 320px);
+      gap: 0;
+      min-height: calc(100vh - 5rem);
+      max-width: 100%;
+    }
+
+    .sidebar-left,
+    .sidebar-right {
+      padding: 1rem;
+      overflow-y: auto;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .canvas-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      overflow: hidden;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .canvas-section {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      flex: 1;
+      min-height: 360px;
+      overflow: hidden;
+    }
+
+    .canvas-fit {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    .controls-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    @media (min-width: 800px) {
+      .controls-section {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 1100px) {
+      .controls-section {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+      gap: 1rem;
+      margin-top: 0;
+    }
+      flex-shrink: 0;
+    }
+
+    .canvas-wrap {
+      transform-origin: 0 0;
+      flex-shrink: 0;
+    }
+
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+    }
+
+    .panel h2 {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .control-row label {
+      flex: 0 0 4rem;
+      font-size: 0.85rem;
+    }
+
+    input[type="number"] {
+      width: 4rem;
+      padding: 0.4rem 0.5rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.5rem 0.9rem;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-dim);
+    }
+
+    .btn-ghost {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      background: var(--hover);
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .checkbox-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .checkbox-wrap input {
+      width: 1.1rem;
+      height: 1.1rem;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .flip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .canvas-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      overflow: hidden;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .canvas-grid {
+      display: grid;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+
+    .pixel {
+      width: 12px;
+      height: 12px;
+      background: var(--pixel-off);
+      cursor: crosshair;
+      transition: background 0.05s;
+    }
+
+    .pixel.on {
+      background: var(--pixel-on);
+    }
+
+    .pixel:hover {
+      filter: brightness(0.95);
+    }
+
+    .canvas-grid.flip-x {
+      direction: rtl;
+    }
+
+    .canvas-grid.flip-x .pixel {
+      direction: ltr;
+    }
+
+    .k-output {
+      margin-top: 1rem;
+    }
+
+    .k-output .label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .k-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      word-break: break-all;
+      background: var(--bg);
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      max-height: 120px;
+      overflow-y: auto;
+      color: var(--muted);
+    }
+
+    .k-value.has-value {
+      color: var(--text);
+    }
+
+    .k-stats {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+    }
+
+    .formula-preview {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      line-height: 1.5;
+      color: var(--muted);
+      overflow-x: auto;
+    }
+
+    .zoom-control {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .zoom-control span {
+      font-size: 0.85rem;
+      min-width: 3rem;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      max-width: 120px;
+      accent-color: var(--accent);
+      height: 6px;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+    }
+
+    .k-input {
+      width: 100%;
+      margin-top: 0.35rem;
+      padding: 0.6rem 0.75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .k-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .k-input::placeholder {
+      color: var(--muted);
+    }
+
+    .k-apply-error {
+      font-size: 0.8rem;
+      color: #f87171;
+      margin-top: 0.4rem;
+      min-height: 1.2em;
+    }
+
+    .saved-form {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .saved-form input[type="text"] {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+
+    .saved-form input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .saved-form input[type="text"]::placeholder {
+      color: var(--muted);
+    }
+
+    .saved-list {
+      list-style: none;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .saved-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.6rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .saved-item-name {
+      flex: 1;
+      min-width: 0;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .saved-item-actions {
+      display: flex;
+      gap: 0.35rem;
+      flex-shrink: 0;
+    }
+
+    .saved-item-actions .btn {
+      padding: 0.35rem 0.6rem;
+      font-size: 0.8rem;
+    }
+
+    .saved-empty {
+      font-size: 0.85rem;
+      color: var(--muted);
+      padding: 0.75rem 0;
+      text-align: center;
+    }
+
+    .sidebar-left .panel {
+      margin-bottom: 0;
+    }
+
+    .sidebar-left .saved-form {
+      flex-direction: column;
+      margin-bottom: 0.5rem;
+    }
+
+    .sidebar-left .saved-list {
+      max-height: 200px;
+    }
+
+    .presets-list {
+      list-style: none;
+    }
+
+    .presets-list li {
+      margin-bottom: 0.5rem;
+    }
+
+    .presets-list .btn {
+      width: 100%;
+      justify-content: flex-start;
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+    }
+
+    .preset-dims {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 400;
+      margin-left: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Fórmula autorreferencial de Tupper</h1>
+    <p class="subtitle">Dibuja, ajusta dimensiones y obtén el número k</p>
+  </header>
+
+  <div class="app-layout">
+    <aside class="sidebar-left">
+      <div class="panel">
+        <h2>Guardados</h2>
+        <p class="hint">Guarda la k actual con un nombre. Se conserva al recargar.</p>
+        <div class="saved-form">
+          <input type="text" id="savedName" placeholder="Nombre del dibujo" maxlength="80">
+          <button type="button" class="btn btn-primary" id="saveCurrentK">Guardar</button>
+        </div>
+        <ul class="saved-list" id="savedList"></ul>
+      </div>
+      <div class="panel">
+        <h2>Ejemplos</h2>
+        <p class="hint" style="margin-bottom: 0.5rem;">K conocidas o figuras curiosas. Cargar aplica dimensiones y dibuja.</p>
+        <ul class="presets-list" id="presetsList"></ul>
+      </div>
+      <div class="panel">
+        <h2>Dimensiones</h2>
+        <div class="control-row">
+          <label>Ancho</label>
+          <input type="number" id="width" min="1" max="150" value="106">
+        </div>
+        <div class="control-row">
+          <label>Alto</label>
+          <input type="number" id="height" min="1" max="150" value="17">
+        </div>
+        <button type="button" class="btn btn-primary" id="applySize" style="margin-top: 0.5rem; width: 100%;">Aplicar tamaño</button>
+        <h2 style="margin-top: 1rem;">Voltear</h2>
+        <div class="flip-row">
+          <label class="checkbox-wrap">
+            <input type="checkbox" id="flipX">
+            <span>Voltear X</span>
+          </label>
+          <label class="checkbox-wrap">
+            <input type="checkbox" id="flipY">
+            <span>Voltear Y</span>
+          </label>
+        </div>
+        <h2 style="margin-top: 1rem;">Zoom</h2>
+        <div class="zoom-control">
+          <span id="zoomLabel">6px</span>
+          <input type="range" id="zoom" min="4" max="32" value="6" step="2">
+        </div>
+      </div>
+    </aside>
+
+    <main class="canvas-center">
+      <section class="canvas-section" id="canvasSection">
+        <div class="canvas-fit" id="canvasFit">
+          <div class="canvas-wrap" id="canvasWrap">
+            <div class="canvas-grid" id="canvas"></div>
+          </div>
+        </div>
+      </section>
+      <p class="hint" style="text-align: center; margin-top: 0.5rem;">Clic izquierdo: pintar · Clic derecho: borrar · Arrastra para dibujar</p>
+    </main>
+
+    <aside class="sidebar-right">
+      <div class="panel">
+        <h2>Lienzo</h2>
+        <div class="btn-group">
+          <button type="button" class="btn btn-ghost" id="clear">Limpiar</button>
+          <button type="button" class="btn btn-ghost" id="invert">Invertir</button>
+        </div>
+        <h2 style="margin-top: 1rem;">Constante k — Introducir o editar</h2>
+        <div class="label">Escribe o pega un valor de k y aplícalo al lienzo</div>
+        <textarea id="kInput" class="k-input" rows="4" placeholder="Pega aquí el valor de k (número entero)…"></textarea>
+        <button type="button" class="btn btn-primary" id="applyKToCanvas" style="width: 100%; margin-top: 0.5rem;">Aplicar k al lienzo</button>
+        <div id="kApplyError" class="k-apply-error"></div>
+        <h2 style="margin-top: 1rem;">Calcular k desde el lienzo</h2>
+        <button type="button" class="btn btn-ghost" id="computeK" style="width: 100%;">Calcular k (actual)</button>
+        <div class="k-output">
+          <div class="label">Valor actual (se actualiza al calcular o al aplicar k)</div>
+          <div class="k-value" id="kValue">—</div>
+          <div class="k-stats" id="kStats"></div>
+        </div>
+        <button type="button" class="btn btn-ghost" id="copyK" style="width: 100%; margin-top: 0.5rem; display: none;">Copiar k</button>
+      </div>
+      <div class="panel">
+        <h2>Fórmula</h2>
+        <div class="formula-preview" id="formulaPreview">
+          1/2 &lt; floor(mod(floor(y/<span id="formulaH">17</span>)·2<sup>-<span id="formulaH2">17</span>·floor(x)−mod(floor(y),<span id="formulaH3">17</span>)</sup>, 2))
+          <div style="margin-top: 0.5rem; color: var(--muted);">Región: 0 ≤ x &lt; <span id="formulaW">106</span>, k ≤ y &lt; k+<span id="formulaH4">17</span></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const canvasEl = document.getElementById('canvas');
+    const canvasFit = document.getElementById('canvasFit');
+    const canvasWrap = document.getElementById('canvasWrap');
+    const canvasSection = document.getElementById('canvasSection');
+    const widthInput = document.getElementById('width');
+    const heightInput = document.getElementById('height');
+    const applySizeBtn = document.getElementById('applySize');
+    const flipXCheck = document.getElementById('flipX');
+    const flipYCheck = document.getElementById('flipY');
+    const zoomInput = document.getElementById('zoom');
+    const zoomLabel = document.getElementById('zoomLabel');
+    const clearBtn = document.getElementById('clear');
+    const invertBtn = document.getElementById('invert');
+    const computeKBtn = document.getElementById('computeK');
+    const kValueEl = document.getElementById('kValue');
+    const kStatsEl = document.getElementById('kStats');
+    const copyKBtn = document.getElementById('copyK');
+    const formulaH = document.getElementById('formulaH');
+    const formulaH2 = document.getElementById('formulaH2');
+    const formulaH3 = document.getElementById('formulaH3');
+    const formulaW = document.getElementById('formulaW');
+    const formulaH4 = document.getElementById('formulaH4');
+    const kInput = document.getElementById('kInput');
+    const applyKToCanvasBtn = document.getElementById('applyKToCanvas');
+    const kApplyErrorEl = document.getElementById('kApplyError');
+    const savedNameInput = document.getElementById('savedName');
+    const saveCurrentKBtn = document.getElementById('saveCurrentK');
+    const savedListEl = document.getElementById('savedList');
+    const presetsListEl = document.getElementById('presetsList');
+
+    const STORAGE_KEY = 'tupper-saved-k';
+
+    const PRESETS = [
+      {
+        name: 'La fórmula se dibuja a sí misma',
+        w: 106,
+        h: 17,
+        k: '4858450636189713423582095962494202044581400587983244549483093085061934704708809928450644769865524364849997247024915119110411605739177407856919754326571855442057210445735883681829823754139634338225199452191651284348332905131193199953502413758765239264874613394906870130562295813219481113685339535565290850023875092856892694555974281546386510730049106723058933586052544096664351265349363643957125565695936815184334857605266940161251266951421550539554519153785457525756590740540157929001765967965480064427829131488548259914721248506352686630476300'
+      },
+      {
+        name: 'Corazón',
+        w: 17,
+        h: 17,
+        k: (function () {
+          const w = 17, h = 17;
+          const g = Array.from({ length: h }, () => Array(w).fill(0));
+          const heart = [
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,1,1,1,0,0,0,1,1,1,0,0,0,0],
+            [0,0,0,1,1,1,1,1,0,1,1,1,1,1,0,0,0],
+            [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+            [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+            [0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+            [0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0],
+            [0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0],
+            [0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+          ];
+          for (let r = 0; r < h && r < heart.length; r++) for (let c = 0; c < w && c < heart[r].length; c++) g[r][c] = heart[r][c];
+          let M = 0n;
+          for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) {
+            if (g[r][c]) M += BigInt(1) << BigInt(h * c + (h - 1 - r));
+          }
+          return (BigInt(h) * M).toString();
+        })()
+      },
+      {
+        name: 'Cara sonriente',
+        w: 17,
+        h: 17,
+        k: (function () {
+          const w = 17, h = 17;
+          const g = Array.from({ length: h }, () => Array(w).fill(0));
+          const heart = [
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0],
+            [0,0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0],
+            [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0],
+            [0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0],
+            [0,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,0],
+            [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0],
+            [0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0],
+            [0,0,1,0,0,1,0,0,0,0,0,1,0,0,1,0,0],
+            [0,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0],
+            [0,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,0],
+            [0,0,0,0,1,0,0,1,1,1,0,0,1,0,0,0,0],
+            [0,0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0],
+            [0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+          ];
+          for (let r = 0; r < h && r < heart.length; r++) for (let c = 0; c < w && c < heart[r].length; c++) g[r][c] = heart[r][c];
+          let M = 0n;
+          for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) {
+            if (g[r][c]) M += BigInt(1) << BigInt(h * c + (h - 1 - r));
+          }
+          return (BigInt(h) * M).toString();
+        })()
+      },
+      {
+        name: '"Hi" (17×7)',
+        w: 17,
+        h: 7,
+        k: (function () {
+          const w = 17, h = 7;
+          const g = Array.from({ length: h }, () => Array(w).fill(0));
+          const hi = [
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,1,0,0,0,1,0,1,1,1,0,0,1,0,0,0,0],
+            [0,1,0,0,0,1,0,0,1,0,0,0,1,0,0,0,0],
+            [0,1,1,1,1,1,0,0,1,0,0,0,1,0,0,0,0],
+            [0,1,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0],
+            [0,1,0,0,0,1,0,1,1,1,0,0,1,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+          ];
+          for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) g[r][c] = hi[r][c] || 0;
+          let M = 0n;
+          for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) {
+            if (g[r][c]) M += BigInt(1) << BigInt(h * c + (h - 1 - r));
+          }
+          return (BigInt(h) * M).toString();
+        })()
+      }
+    ];
+
+    let W = 106, H = 17;
+    let grid = [];
+    let lastK = null;
+    let isDrawing = false;
+    let drawMode = null; // 'on' or 'off'
+    let pixelSize = 6;
+
+    function initGrid() {
+      grid = Array.from({ length: H }, () => Array(W).fill(0));
+      renderGrid();
+    }
+
+    function getPixelSize() {
+      return Math.max(4, Math.min(32, pixelSize));
+    }
+
+    function renderGrid() {
+      const size = getPixelSize();
+      const flipX = flipXCheck.checked;
+      const flipY = flipYCheck.checked;
+
+      canvasEl.innerHTML = '';
+      canvasEl.style.gridTemplateColumns = `repeat(${W}, ${size}px)`;
+      canvasEl.style.gridTemplateRows = `repeat(${H}, ${size}px)`;
+      canvasEl.style.minWidth = `${W * size}px`;
+      canvasEl.style.minHeight = `${H * size}px`;
+      canvasEl.classList.toggle('flip-x', flipX);
+
+      const cols = flipX ? [...Array(W).keys()].reverse() : Array.from({ length: W }, (_, i) => i);
+
+      for (let rowIndex = 0; rowIndex < H; rowIndex++) {
+        const y = flipY ? (H - 1 - rowIndex) : rowIndex;
+        cols.forEach(cx => {
+          const x = cx;
+          const cell = document.createElement('div');
+          cell.className = 'pixel' + (grid[y][x] ? ' on' : '');
+          cell.dataset.x = x;
+          cell.dataset.y = y;
+          cell.style.width = size + 'px';
+          cell.style.height = size + 'px';
+          cell.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            if (e.button === 0) {
+              drawMode = 'on';
+              setPixel(x, y, 1);
+            } else if (e.button === 2) {
+              drawMode = 'off';
+              setPixel(x, y, 0);
+            }
+            isDrawing = true;
+          });
+          cell.addEventListener('contextmenu', (e) => e.preventDefault());
+          canvasEl.appendChild(cell);
+        });
+      }
+      updateCanvasScale();
+    }
+
+    function updateCanvasScale() {
+      const size = getPixelSize();
+      const padding = 32;
+      const wrapW = W * size + padding;
+      const wrapH = H * size + padding;
+      const section = canvasSection;
+      const availW = (section && section.clientWidth > 0) ? section.clientWidth : (window.innerWidth - 48);
+      const availH = (section && section.clientHeight > 0) ? section.clientHeight : (window.innerHeight - 300);
+      const scale = (availW > 0 && availH > 0 && wrapW > 0 && wrapH > 0)
+        ? Math.min(1, availW / wrapW, availH / wrapH)
+        : 1;
+      if (canvasWrap) {
+        canvasWrap.style.width = wrapW + 'px';
+        canvasWrap.style.height = wrapH + 'px';
+        canvasWrap.style.transform = 'scale(' + scale + ')';
+      }
+      if (canvasFit) {
+        canvasFit.style.width = (wrapW * scale) + 'px';
+        canvasFit.style.height = (wrapH * scale) + 'px';
+      }
+    }
+
+    function setPixel(x, y, value) {
+      if (y < 0 || y >= H || x < 0 || x >= W) return;
+      grid[y][x] = value;
+      const cell = canvasEl.querySelector(`.pixel[data-x="${x}"][data-y="${y}"]`);
+      if (cell) cell.classList.toggle('on', value === 1);
+    }
+
+    function getSavedList() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const list = JSON.parse(raw);
+        return Array.isArray(list) ? list : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveListToStorage(list) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+
+    function addSaved(name, kStr) {
+      const list = getSavedList();
+      const nameTrim = (name || '').trim() || 'Sin nombre';
+      list.unshift({
+        id: Date.now(),
+        name: nameTrim.slice(0, 80),
+        k: String(kStr)
+      });
+      saveListToStorage(list);
+      renderSavedList();
+    }
+
+    function removeSaved(id) {
+      const list = getSavedList().filter(item => item.id !== id);
+      saveListToStorage(list);
+      renderSavedList();
+    }
+
+    function loadSavedItem(kStr) {
+      const raw = (kStr || '').trim().replace(/\s/g, '');
+      if (!raw) return;
+      try {
+        const kVal = BigInt(raw);
+        applyKToGrid(kVal);
+        lastK = kVal;
+        const str = lastK.toString();
+        kValueEl.textContent = str;
+        kValueEl.classList.add('has-value');
+        kStatsEl.textContent = str.length + ' dígitos · ' + (W * H) + ' píxeles';
+        copyKBtn.style.display = 'block';
+        kInput.value = str;
+        kApplyErrorEl.textContent = '';
+      } catch (e) {
+        kApplyErrorEl.textContent = 'No se pudo cargar esta k.';
+      }
+    }
+
+    function renderSavedList() {
+      const list = getSavedList();
+      savedListEl.innerHTML = '';
+      if (list.length === 0) {
+        savedListEl.innerHTML = '<li class="saved-empty">Aún no hay nada guardado</li>';
+        return;
+      }
+      list.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'saved-item';
+        li.innerHTML =
+          '<span class="saved-item-name" title="' + escapeAttr(item.name) + '">' + escapeHtml(item.name) + '</span>' +
+          '<span class="saved-item-actions">' +
+          '<button type="button" class="btn btn-ghost" data-action="load" data-id="' + item.id + '">Cargar</button>' +
+          '<button type="button" class="btn btn-ghost" data-action="delete" data-id="' + item.id + '" title="Eliminar">✕</button>' +
+          '</span>';
+        savedListEl.appendChild(li);
+      });
+      savedListEl.querySelectorAll('[data-action="load"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = getSavedList().find(i => i.id === parseInt(btn.dataset.id, 10));
+          if (item) loadSavedItem(item.k);
+        });
+      });
+      savedListEl.querySelectorAll('[data-action="delete"]').forEach(btn => {
+        btn.addEventListener('click', () => removeSaved(parseInt(btn.dataset.id, 10)));
+      });
+    }
+
+    function escapeHtml(s) {
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    function escapeAttr(s) {
+      return escapeHtml(s).replace(/"/g, '&quot;');
+    }
+
+    function applyPreset(preset) {
+      widthInput.value = preset.w;
+      heightInput.value = preset.h;
+      applySize();
+      loadSavedItem(preset.k);
+    }
+
+    function renderPresets() {
+      if (!presetsListEl) return;
+      presetsListEl.innerHTML = '';
+      PRESETS.forEach((preset, idx) => {
+        const li = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-ghost';
+        btn.innerHTML = escapeHtml(preset.name) + '<span class="preset-dims">' + preset.w + '×' + preset.h + '</span>';
+        btn.addEventListener('click', () => applyPreset(preset));
+        li.appendChild(btn);
+        presetsListEl.appendChild(li);
+      });
+    }
+
+    function getPixelForK(col, formulaRow) {
+      const flipX = flipXCheck.checked;
+      const flipY = flipYCheck.checked;
+      const ourCol = flipX ? W - 1 - col : col;
+      const ourRow = flipY ? formulaRow : (H - 1 - formulaRow);
+      return grid[ourRow][ourCol];
+    }
+
+    function computeKFromGrid() {
+      let M = 0n;
+      for (let r = 0; r < H; r++) {
+        for (let c = 0; c < W; c++) {
+          const val = getPixelForK(c, r);
+          const rowInFormula = H - 1 - r;
+          const bitIndex = H * c + rowInFormula;
+          if (val) M += BigInt(1) << BigInt(bitIndex);
+        }
+      }
+      const k = BigInt(H) * M;
+      return k;
+    }
+
+    function applyKToGrid(kBigInt) {
+      const M = kBigInt / BigInt(H);
+      for (let c = 0; c < W; c++) {
+        for (let r = 0; r < H; r++) {
+          const bitIndex = H * c + r;
+          const bit = (M >> BigInt(bitIndex)) & 1n;
+          const ourRow = H - 1 - r;
+          grid[ourRow][c] = bit === 1n ? 1 : 0;
+        }
+      }
+      renderGrid();
+    }
+
+    function applySize() {
+      const requestedW = parseInt(widthInput.value, 10);
+      const requestedH = parseInt(heightInput.value, 10);
+      W = Math.max(1, Math.min(150, Number.isNaN(requestedW) ? 106 : requestedW));
+      H = Math.max(1, Math.min(150, Number.isNaN(requestedH) ? 17 : requestedH));
+      widthInput.value = W;
+      heightInput.value = H;
+      formulaH.textContent = H;
+      formulaH2.textContent = H;
+      formulaH3.textContent = H;
+      if (formulaW) formulaW.textContent = W;
+      if (formulaH4) formulaH4.textContent = H;
+      initGrid();
+      lastK = null;
+      kValueEl.textContent = '—';
+      kValueEl.classList.remove('has-value');
+      kStatsEl.textContent = '';
+      copyKBtn.style.display = 'none';
+      if (kInput) kInput.value = '';
+      if (kApplyErrorEl) kApplyErrorEl.textContent = '';
+    }
+
+    applySizeBtn.addEventListener('click', applySize);
+
+    flipXCheck.addEventListener('change', () => renderGrid());
+    flipYCheck.addEventListener('change', () => renderGrid());
+
+    zoomInput.addEventListener('input', () => {
+      pixelSize = parseInt(zoomInput.value, 10);
+      zoomLabel.textContent = pixelSize + 'px';
+      renderGrid();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      initGrid();
+      lastK = null;
+      kValueEl.textContent = '—';
+      kValueEl.classList.remove('has-value');
+      kStatsEl.textContent = '';
+      copyKBtn.style.display = 'none';
+      if (kInput) kInput.value = '';
+      if (kApplyErrorEl) kApplyErrorEl.textContent = '';
+    });
+
+    invertBtn.addEventListener('click', () => {
+      for (let y = 0; y < H; y++)
+        for (let x = 0; x < W; x++)
+          grid[y][x] = 1 - grid[y][x];
+      renderGrid();
+      if (lastK !== null) computeKBtn.click();
+    });
+
+    applyKToCanvasBtn.addEventListener('click', () => {
+      const raw = (kInput.value || '').trim().replace(/\s/g, '');
+      kApplyErrorEl.textContent = '';
+      if (!raw) {
+        kApplyErrorEl.textContent = 'Escribe o pega un valor de k.';
+        return;
+      }
+      let kVal;
+      try {
+        kVal = BigInt(raw);
+      } catch (e) {
+        kApplyErrorEl.textContent = 'k debe ser un número entero válido.';
+        return;
+      }
+      if (kVal < 0n) {
+        kApplyErrorEl.textContent = 'k debe ser ≥ 0.';
+        return;
+      }
+      if (kVal % BigInt(H) !== 0n) {
+        kApplyErrorEl.textContent = 'Aviso: k no es múltiplo del alto (' + H + '). El resultado puede variar.';
+      }
+      applyKToGrid(kVal);
+      lastK = kVal;
+      const str = lastK.toString();
+      kValueEl.textContent = str;
+      kValueEl.classList.add('has-value');
+      kStatsEl.textContent = str.length + ' dígitos · ' + (W * H) + ' píxeles';
+      copyKBtn.style.display = 'block';
+    });
+
+    computeKBtn.addEventListener('click', () => {
+      lastK = computeKFromGrid();
+      const str = lastK.toString();
+      kValueEl.textContent = str;
+      kValueEl.classList.add('has-value');
+      kStatsEl.textContent = str.length + ' dígitos · ' + (W * H) + ' píxeles';
+      copyKBtn.style.display = 'block';
+      kInput.value = str;
+      kApplyErrorEl.textContent = '';
+    });
+
+    copyKBtn.addEventListener('click', () => {
+      if (lastK === null) return;
+      navigator.clipboard.writeText(lastK.toString()).then(() => {
+        copyKBtn.textContent = '¡Copiado!';
+        setTimeout(() => { copyKBtn.textContent = 'Copiar k'; }, 1500);
+      });
+    });
+
+    saveCurrentKBtn.addEventListener('click', () => {
+      let kToSave = lastK;
+      if (kToSave === null) {
+        kToSave = computeKFromGrid();
+        lastK = kToSave;
+        const str = kToSave.toString();
+        kValueEl.textContent = str;
+        kValueEl.classList.add('has-value');
+        kStatsEl.textContent = str.length + ' dígitos · ' + (W * H) + ' píxeles';
+        copyKBtn.style.display = 'block';
+        kInput.value = str;
+      }
+      addSaved(savedNameInput.value, kToSave.toString());
+      savedNameInput.value = '';
+      savedNameInput.focus();
+    });
+
+    document.addEventListener('mouseup', () => { isDrawing = false; });
+    document.addEventListener('mouseleave', () => { isDrawing = false; });
+
+    canvasEl.addEventListener('mouseover', (e) => {
+      if (!isDrawing || !drawMode) return;
+      const cell = e.target;
+      if (!cell.classList.contains('pixel')) return;
+      const x = parseInt(cell.dataset.x, 10);
+      const y = parseInt(cell.dataset.y, 10);
+      setPixel(x, y, drawMode === 'on' ? 1 : 0);
+    });
+
+    window.addEventListener('resize', updateCanvasScale);
+
+    initGrid();
+    renderSavedList();
+    renderPresets();
+  </script>
+</body>
+</html>
